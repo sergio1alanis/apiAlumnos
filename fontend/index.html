@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apilcacion de control de alumnos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+
+        <div class="container">
+            <br>
+
+            <div class="row">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-header">Alumnos</div>
+                        <div class="card-body">
+                            <form @submit.prevent="crearAlumno">
+                                Nombres:<input type="text" class="form-control" v-model="nuevoAlunmo.nombres" name="nombres" id="nombres" required> Apellidos:
+                                <input type="text" class="form-control" v-model="nuevoAlunmo.apellidos" name="apellidos" id="apellidos"><br><br>
+                                <br>
+                                <button type="submit" class="btn btn-success">Crear alumno</button>
+                            </form>
+
+                        </div>
+                        <div class="card-footer text-muted"></div>
+                    </div>
+                </div>
+                <div class="col-6">
+
+                    <div class="card">
+                        <div class="card-header">Alumnos en la Base de datos</div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                <li class="list-group-item d flex align-items-center" v-for="alumno in alumnos" :key="alumno.id">
+
+                                    <button class="btn btn-danger btn-sm" @click="eliminarAlumno(alumno.id)">Eliminar</button> &nbsp; &nbsp; {{ alumno.name }} - {{ alumno.lastname }}
+
+                                </li>
+                            </ul>
+
+
+                        </div>
+                        <div class="card-footer text-muted"></div>
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        //Nombre de la aplicacion, que servira para mmostrar los datos
+        const {
+            createApp,
+            ref,
+            onMounted
+        } = Vue;
+        //A razon de que se utilizara muchas veces la URL , se crea una variable constante llamada apiUrl
+        const apiURL = "http://localhost:8080/";
+        const app = createApp({
+            setup() {
+                //Se crea una referencia de un  array
+                const alumnos = ref([]);
+
+                const nuevoAlunmo = ref({
+                    nombres: '',
+                    apellidos: ''
+                });
+
+
+                //Metodo async para hacer solicitud en segundo plano a la URL
+                //de los registros y se almacena en una variable
+                const obtenerAlumnos = async() => {
+                    const respuesta = await axios.get(apiURL);
+                    alumnos.value = respuesta.data;
+                };
+
+                //Metodo para eliminar alumnos
+                const eliminarAlumno = async(id) => {
+                    await axios.delete(`${apiURL}${id}`);
+                    obtenerAlumnos();
+                };
+
+
+                //Metodo crearAlumno , recibe dos parametros el evento del formulario y la nueva informacion del formulario
+                const crearAlumno = async() => {
+                    try {
+                        const respuesta = await axios.post(apiURL, nuevoAlunmo.value);
+                        alumnos.value.push(respuesta.data); //agrega elementos al arreglo
+                        nuevoAlunmo.value = {
+                            nombres: '',
+                            apellidos: ''
+                        }; //reinicializar ya que la informacion ya se envio
+                        obtenerAlumnos(); //actualiza el listado de alumnos
+
+                    } catch (error) {
+                        console.log("Error al crear el alumno", error);
+                    }
+                }
+
+                //Llamado a la funcion cuando el componente esta listo
+                onMounted(() => {
+                    obtenerAlumnos();
+                });
+                return {
+                    alumnos,
+                    crearAlumno,
+                    nuevoAlunmo,
+                    eliminarAlumno
+                };
+            }
+        });
+        //Esta linea hace la montura de la aplicacion en el componente Div (html)
+        app.mount('#app');
+    </script>
+
+</body>
+
+</html>

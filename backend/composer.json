@@ -1,0 +1,16 @@
+{
+    "name": "sergio/backend",
+    "autoload": {
+        "psr-4": {
+            "Sergio\\Backend\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sergio Alanis"
+        }
+    ],
+    "require": {
+        "bramus/router": "~1.6"
+    }
+}
